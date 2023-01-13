@@ -12,12 +12,15 @@ class BaseUpdateParams(BaseModel):
     pass
 
 
-def convert_pydantic(model: Type[BaseInitialParams]) -> Type[BaseUpdateParams]:
+def create_update_model(
+    initial_model: Type[BaseInitialParams],
+) -> Type[BaseUpdateParams]:
     new_fields = {
-        field.name: (Optional[field.type_], None) for field in model.__fields__.values()
+        field.name: (Optional[field.type_], None)
+        for field in initial_model.__fields__.values()
     }
     return create_model(
-        f"Update{model.__name__}", __base__=BaseUpdateParams, **new_fields
+        f"Update{initial_model.__name__}", __base__=BaseUpdateParams, **new_fields
     )
 
 
@@ -56,7 +59,7 @@ class EndgameModel(GenericModel, Generic[InitialParams, UpdateParams, ProgramPar
     programs: list[Program[ProgramParams]]
 
 
-def reduce_parameters(
+def apply_incremental_param_changes(
     initial: BaseInitialParams, changes: Iterable[ParameterChanges[BaseUpdateParams]]
 ) -> BaseInitialParams:
     current_dict = initial.dict()

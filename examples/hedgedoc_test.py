@@ -4,8 +4,8 @@ from endgame_models import (
     BaseInitialParams,
     BaseProgramParams,
     EndgameModel,
-    convert_pydantic,
-    reduce_parameters,
+    apply_incremental_param_changes,
+    create_update_model,
 )
 
 test = {
@@ -72,10 +72,12 @@ class TestProgramParams(BaseProgramParams):
     type: VaccineType = VaccineType.MDA
 
 
-NewModel = EndgameModel[TestParams, convert_pydantic(TestParams), TestProgramParams]
+NewModel = EndgameModel[TestParams, create_update_model(TestParams), TestProgramParams]
 output = NewModel.parse_obj(test)
 print(output.parameters)
 
 
-reduced = reduce_parameters(output.parameters.initial, output.parameters.changes)
+reduced = apply_incremental_param_changes(
+    output.parameters.initial, output.parameters.changes
+)
 print(reduced)

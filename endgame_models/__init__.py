@@ -2,14 +2,14 @@ from .models import (
     BaseInitialParams,
     BaseProgramParams,
     EndgameModel,
-    convert_pydantic,
-    reduce_parameters,
+    apply_incremental_param_changes,
+    create_update_model,
 )
 
 __all__ = [
     "EndgameModel",
-    "convert_pydantic",
-    "reduce_parameters",
+    "create_update_model",
+    "apply_incremental_param_changes",
     "BaseInitialParams",
     "BaseProgramParams",
 ]
