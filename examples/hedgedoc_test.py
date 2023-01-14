@@ -1,19 +1,14 @@
 from enum import Enum
 
-from endgame_models import (
-    BaseInitialParams,
-    BaseProgramParams,
-    EndgameModel,
-    apply_incremental_param_changes,
-    create_update_model,
-)
+from endgame_models import BaseInitialParams, BaseProgramParams, make_endgame_model
+from endgame_models.models import apply_incremental_param_changes
 
 test = {
     "parameters": {
         "initial": {"w_rate": 0.1, "delta_time": 3},
         "changes": [
             {"year": 2020, "month": 1, "params": {"delta_time": 1}},
-            {"year": 2022, "month": 1, "params": {"delta_time": 2, "test": 1}},
+            {"year": 2022, "month": 1, "params": {"delta_time": 2, "wrate": 1}},
         ],
     },
     "programs": [
@@ -72,8 +67,8 @@ class TestProgramParams(BaseProgramParams):
     type: VaccineType = VaccineType.MDA
 
 
-NewModel = EndgameModel[TestParams, create_update_model(TestParams), TestProgramParams]
-output = NewModel.parse_obj(test)
+Test = make_endgame_model("Test", TestParams, TestProgramParams)
+output = Test.parse_obj(test)
 print(output.parameters)
 
 
