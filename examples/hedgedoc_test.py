@@ -1,6 +1,6 @@
 from enum import Enum
 
-from endgame_models import (
+from endgame_simulations import (
     BaseInitialParams,
     BaseProgramParams,
     apply_incremental_param_changes,

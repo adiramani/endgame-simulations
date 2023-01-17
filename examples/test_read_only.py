@@ -1,4 +1,4 @@
-from endgame_models import BaseInitialParams, get_read_only_differences, read_only
+from endgame_simulations import BaseInitialParams, get_read_only_differences, read_only
 
 
 class SubTest(BaseInitialParams):

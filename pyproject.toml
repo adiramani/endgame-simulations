@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "endgame-models"
+name = "endgame-simulations"
 version = "0.1.0"
 description = ""
 authors = ["mark-todd <markpeter.todd@hotmail.co.uk>"]
