@@ -231,7 +231,7 @@ class GenericSimulation(Generic[ParamsModel, State], ABC):
             end_time (float): end time of the simulation.
         """
         if end_time < self.state.current_time:
-            raise ValueError("End time after start")
+            raise ValueError("End time before start")
 
         # total progress bar must be a bit over so that the loop doesn't exceed total
         with tqdm.tqdm(

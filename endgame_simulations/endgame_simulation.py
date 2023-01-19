@@ -28,7 +28,7 @@ class GenericEndgame(Generic[EndgameModelGeneric, Simulation, State, CombinedPar
     convert_endgame: ClassVar[ConvertEndgame]
     simulation: Simulation
     _param_set: list[tuple[float, CombinedParams]]
-    current_param: int
+    next_params_index: int
 
     def __init_subclass__(
         cls,
@@ -67,7 +67,7 @@ class GenericEndgame(Generic[EndgameModelGeneric, Simulation, State, CombinedPar
             # input
             simulation = type(self).simulation_class.restore(input=input)
         self.simulation = cast(Simulation, simulation)
-        self.current_param = 1
+        self.next_params_index = 1
 
     def save(self, output: FileType) -> None:
         """Save the simulation to a file/stream.
@@ -146,17 +146,18 @@ class GenericEndgame(Generic[EndgameModelGeneric, Simulation, State, CombinedPar
         sampling_years: list[float] | None = None,
     ) -> Iterator[State]:
         while self.simulation.state.current_time < end_time:
-            end_time_override = end_time
-            if self.current_param < len(self._param_set):
+            checkpoint_time = end_time
+            if self.next_params_index < len(self._param_set):
                 # Has param sets left
-                time, params = self._param_set[self.current_param]
+                time, params = self._param_set[self.next_params_index]
+                self.next_params_index +=1
                 if time < end_time:
                     self.simulation.reset_current_params(params)
-                    end_time_override = time
+                    checkpoint_time = time
 
             yield next(
                 self.simulation.iter_run(
-                    end_time=end_time_override,
+                    end_time=checkpoint_time,
                     sampling_interval=sampling_interval,
                     sampling_years=sampling_years,
                 )
@@ -169,12 +170,12 @@ class GenericEndgame(Generic[EndgameModelGeneric, Simulation, State, CombinedPar
             end_time (float): end time of the simulation.
         """
         while self.simulation.state.current_time < end_time:
-            end_time_override = end_time
-            if self.current_param < len(self._param_set):
+            checkpoint_time = end_time
+            if self.next_params_index < len(self._param_set):
                 # Has param sets left
-                time, params = self._param_set[self.current_param]
+                time, params = self._param_set[self.next_params_index]
+                self.next_params_index +=1
                 if time < end_time:
-                    end_time_override = time
+                    checkpoint_time = time
                     self.simulation.reset_current_params(params)
-
-            self.simulation.run(end_time=end_time_override)
+            self.simulation.run(end_time=checkpoint_time)

@@ -67,8 +67,8 @@ input_end = {
 endgame = TestEndgame.parse_obj(input_end)
 
 
-def convert_endgame(endgame: EndgameModel) -> list[FullParams]:
-    return [FullParams()]
+def convert_endgame(endgame: EndgameModel) -> list[tuple[float, Params]]:
+    return [(0.0, FullParams())]
 
 
 class NewEndgame(
