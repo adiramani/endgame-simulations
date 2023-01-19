@@ -8,7 +8,7 @@ __all__ = [
 ]
 
 import warnings
-from typing import Generic, Iterable, Optional, Type, TypeVar
+from typing import Generic, Iterable, Optional, TypeVar
 
 from pydantic import BaseModel, Field, PrivateAttr, create_model
 from pydantic.fields import FieldInfo
@@ -58,8 +58,8 @@ class _BaseUpdateParams(BaseParams):
 
 
 def create_update_model(
-    initial_model: Type[BaseInitialParams],
-) -> Type[_BaseUpdateParams]:
+    initial_model: type[BaseInitialParams],
+) -> type[_BaseUpdateParams]:
     new_fields = {}
     for field in initial_model.__fields__.values():
         if field.field_info.allow_mutation:
@@ -112,23 +112,19 @@ class EndgameModel(
 
 
 def apply_incremental_param_changes(
-    initial: BaseInitialParams, changes: Iterable[ParameterChanges[_BaseUpdateParams]]
-) -> BaseInitialParams:
+    initial: InitialParams, changes: Iterable[ParameterChanges[_BaseUpdateParams]]
+) -> InitialParams:
     current_dict = initial.dict()
     for change in changes:
         current_dict.update(change.params.dict(exclude_unset=True))
     return type(initial).parse_obj(current_dict)
 
 
-InitialModel = TypeVar("InitialModel", bound=BaseInitialParams)
-ProgramModel = TypeVar("ProgramModel", bound=BaseProgramParams)
-
-
 def make_endgame_model(
     name: str,
-    initial_model: Type[InitialModel],
-    treatment_model: Type[ProgramModel],
-) -> Type[EndgameModel[InitialModel, _BaseUpdateParams, ProgramModel]]:
+    initial_model: type[InitialParams],
+    treatment_model: type[ProgramParams],
+) -> type[EndgameModel[InitialParams, _BaseUpdateParams, ProgramParams]]:
     NewModel = EndgameModel[
         initial_model, create_update_model(initial_model), treatment_model
     ]
