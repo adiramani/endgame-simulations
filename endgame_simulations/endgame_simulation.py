@@ -155,12 +155,11 @@ class GenericEndgame(Generic[EndgameModelGeneric, Simulation, State, CombinedPar
                     checkpoint_time = time
                     self.simulation.reset_current_params(params)
 
-            for state in self.simulation.iter_run(
+            yield from self.simulation.iter_run(
                 end_time=checkpoint_time,
                 sampling_interval=sampling_interval,
                 sampling_years=sampling_years,
-            ):
-                yield state
+            )
 
     def run(self, *, end_time: float) -> None:
         """Run simulation from current state till `end_time`
