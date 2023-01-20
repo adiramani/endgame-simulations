@@ -240,5 +240,5 @@ class GenericSimulation(Generic[ParamsModel, State], ABC):
         ) as progress_bar:
             while self.state.current_time <= end_time:
                 progress_bar.update(self._delta_time)
-                type(self).advance_state(self.state)
+                type(self).advance_state(self.state, self.debug)
                 self.state.current_time += self._delta_time

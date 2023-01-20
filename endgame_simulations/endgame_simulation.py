@@ -150,18 +150,17 @@ class GenericEndgame(Generic[EndgameModelGeneric, Simulation, State, CombinedPar
             if self.next_params_index < len(self._param_set):
                 # Has param sets left
                 time, params = self._param_set[self.next_params_index]
-                self.next_params_index +=1
+                self.next_params_index += 1
                 if time < end_time:
-                    self.simulation.reset_current_params(params)
                     checkpoint_time = time
+                    self.simulation.reset_current_params(params)
 
-            yield next(
-                self.simulation.iter_run(
-                    end_time=checkpoint_time,
-                    sampling_interval=sampling_interval,
-                    sampling_years=sampling_years,
-                )
-            )
+            for state in self.simulation.iter_run(
+                end_time=checkpoint_time,
+                sampling_interval=sampling_interval,
+                sampling_years=sampling_years,
+            ):
+                yield state
 
     def run(self, *, end_time: float) -> None:
         """Run simulation from current state till `end_time`
@@ -174,7 +173,7 @@ class GenericEndgame(Generic[EndgameModelGeneric, Simulation, State, CombinedPar
             if self.next_params_index < len(self._param_set):
                 # Has param sets left
                 time, params = self._param_set[self.next_params_index]
-                self.next_params_index +=1
+                self.next_params_index += 1
                 if time < end_time:
                     checkpoint_time = time
                     self.simulation.reset_current_params(params)
