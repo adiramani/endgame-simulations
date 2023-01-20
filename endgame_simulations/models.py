@@ -77,7 +77,7 @@ InitialParams = TypeVar("InitialParams", bound=BaseInitialParams)
 UpdateParams = TypeVar("UpdateParams", bound=_BaseUpdateParams)
 
 
-class ParameterChanges(GenericModel, Generic[UpdateParams]):
+class ParameterChange(GenericModel, Generic[UpdateParams]):
     year: int
     month: int = 1
     params: UpdateParams
@@ -85,7 +85,7 @@ class ParameterChanges(GenericModel, Generic[UpdateParams]):
 
 class Parameters(GenericModel, Generic[InitialParams, UpdateParams]):
     initial: InitialParams
-    changes: list[ParameterChanges[UpdateParams]]
+    changes: list[ParameterChange[UpdateParams]]
 
 
 class BaseProgramParams(BaseParams):
@@ -112,11 +112,16 @@ class EndgameModel(
 
 
 def apply_incremental_param_changes(
-    initial: InitialParams, changes: Iterable[ParameterChanges[_BaseUpdateParams]]
+    initial: InitialParams,
+    changes: ParameterChange[_BaseUpdateParams]
+    | Iterable[ParameterChange[_BaseUpdateParams]],
 ) -> InitialParams:
     current_dict = initial.dict()
-    for change in changes:
-        current_dict.update(change.params.dict(exclude_unset=True))
+    if isinstance(changes, ParameterChange):
+        current_dict.update(changes.params.dict(exclude_unset=True))
+    else:
+        for change in changes:
+            current_dict.update(change.params.dict(exclude_unset=True))
     return type(initial).parse_obj(current_dict)
 
 
