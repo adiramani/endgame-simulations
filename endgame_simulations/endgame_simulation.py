@@ -66,6 +66,7 @@ class GenericEndgame(Generic[EndgameModelGeneric, Simulation, State, CombinedPar
                 verbose=verbose,
                 debug=debug,
             )
+            self.next_params_index = 1
 
         else:
             assert input
@@ -94,7 +95,6 @@ class GenericEndgame(Generic[EndgameModelGeneric, Simulation, State, CombinedPar
             self.next_params_index = int(next_params)
 
         self.simulation = cast(Simulation, simulation)
-        self.next_params_index = 1
 
     def save(self, output: FileType | h5py.File | h5py.Group) -> None:
         """Save the simulation to a file/stream.
