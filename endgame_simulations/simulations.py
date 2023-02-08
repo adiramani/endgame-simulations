@@ -1,3 +1,4 @@
+import warnings
 from abc import ABC, abstractproperty
 from typing import ClassVar, Generic, Iterator, TypeVar, cast, overload
 
@@ -240,11 +241,14 @@ class GenericSimulation(Generic[ParamsModel, State], ABC):
             )
 
         # total progress bar must be a bit over so that the loop doesn't exceed total
-        with tqdm.tqdm(
-            total=end_time - self.state.current_time + self._delta_time,
-            disable=not self.verbose,
-        ) as progress_bar:
-            while self.state.current_time <= end_time:
-                progress_bar.update(self._delta_time)
-                type(self).advance_state(self.state, self.debug)
-                self.state.current_time += self._delta_time
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=tqdm.TqdmWarning)
+            with tqdm.tqdm(
+                total=end_time - self.state.current_time + self._delta_time,
+                disable=not self.verbose,
+            ) as progress_bar:
+
+                while self.state.current_time <= end_time:
+                    progress_bar.update(self._delta_time)
+                    type(self).advance_state(self.state, self.debug)
+                    self.state.current_time += self._delta_time
