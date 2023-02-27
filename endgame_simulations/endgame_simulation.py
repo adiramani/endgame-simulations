@@ -18,9 +18,12 @@ EndgameModelGeneric = TypeVar(
 def find_next_params_index(
     param_set: list[tuple[float, CombinedParams]], current_time: float
 ) -> int:
-    next_params_index = next(
-        i for i, (time, _) in enumerate(param_set) if time > current_time
-    )
+    try:
+        next_params_index = next(
+            i for i, (time, _) in enumerate(param_set) if time > current_time
+        )
+    except StopIteration:
+        return len(param_set)
     if next_params_index < 1:
         raise ValueError(f"Invalid next param index: {next_params_index}")
     return next_params_index
