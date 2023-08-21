@@ -8,7 +8,7 @@ __all__ = [
 ]
 
 import warnings
-from typing import Generic, Iterable, Optional, TypeVar
+from typing import Generic, Iterable, Optional, TypeVar, get_origin
 
 from pydantic import BaseModel, Field, PrivateAttr, create_model
 from pydantic.fields import FieldInfo
@@ -63,7 +63,7 @@ def create_update_model(
     new_fields = {}
     for field in initial_model.__fields__.values():
         if field.field_info.allow_mutation:
-            if issubclass(field.outer_type_, BaseInitialParams):
+            if get_origin(field.outer_type_) != list and issubclass(field.outer_type_, BaseInitialParams):
                 new_model = create_update_model(field.outer_type_)
             else:
                 new_model = field.outer_type_
