@@ -68,13 +68,11 @@ class BaseInitialParams(BaseParams):
     """
 
 
-
 class _BaseUpdateParams(BaseParams):
     """
     The base class for the "changes" section of the endgame model. Custom models must inherit
     from this - used for typing. This is typically used via "create_update_model"
     """
-
 
 
 def create_update_model(

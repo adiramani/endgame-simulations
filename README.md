@@ -9,7 +9,8 @@
 # Why make endgame simulations?
 
 Lots of disease simulations possess similarities in their design, but not always in the specifics of their
-implementation. The 
+implementation. The aim of endgame simulations is to provide a structure from which other disease models can
+be implemented, regimenting their structure, and allowing for a consistent interface.
 
 # Why use typing, generics and protocols?
 
