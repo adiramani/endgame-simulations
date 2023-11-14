@@ -10,6 +10,10 @@ StateParams = TypeVar("StateParams", bound=BaseInitialParams)
 
 
 class BaseState(Generic[StateParams], ABC):
+    """
+    The abstract base class for all state classes.
+    """
+
     current_time: float
     _previous_delta_time: Optional[float]
 
@@ -61,5 +65,10 @@ State = TypeVar("State", bound=BaseState, contravariant=True)
 
 
 class AdvanceState(Protocol, Generic[State]):
+    """
+    The structure protocol of the advance state function to be provided to
+    the simulation.
+    """
+
     def __call__(self, state: State, debug: bool = False) -> None:
         ...

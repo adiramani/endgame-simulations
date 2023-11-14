@@ -5,12 +5,17 @@ from hdf5_dataclass import HDF5Dataclass
 from endgame_simulations.models import BaseInitialParams
 from endgame_simulations.simulations import BaseState, GenericSimulation
 
+# This example demonstrates how to use "GenericSimulation".
 
+# Define the parameters
 class Params(BaseInitialParams):
     w_rate: float = 0.1
     delta_time: float = 0.2
 
 
+# The state class.
+# The use of HDF5Dataclass implements a way to encode the state object into
+# hdf5 format, allowing the state to be easily stored and reimported.
 class State(HDF5Dataclass, BaseState[Params]):
     current_time: float
     params: Params
@@ -28,11 +33,15 @@ class State(HDF5Dataclass, BaseState[Params]):
         self.params = params
 
 
+# Here state has an integer that gets advanced by 1 every timestep. This just represents
+# a way that the state might be advanced for a disease. Typically through the advancement
+# would scale with delta time.
 def advance_state(state: State, debug: bool = False):
     print(state)
     state.state_int = state.state_int + 1
 
 
+# The new simulation
 class NewSim(
     GenericSimulation[Params, State], state_class=State, advance_state=advance_state
 ):

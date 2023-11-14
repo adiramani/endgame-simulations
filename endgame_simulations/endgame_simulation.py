@@ -18,6 +18,19 @@ EndgameModelGeneric = TypeVar(
 def find_next_params_index(
     param_set: list[tuple[float, CombinedParams]], current_time: float
 ) -> int:
+    """
+    Based on the current time, and the times at which each parameter set is
+    supposed to be used, determines the index of the parameter set to be used next.
+
+    Args:
+        param_set (list[tuple[float, CombinedParams]]): A list where each item represents:
+            float: Time the parameters should be changed.
+            CombinedParams: The new parameters at that time
+        current_time (float): The current time of the simulation.
+
+    Returns:
+        int: The index (based on the list provided) of the relevant item.
+    """
     try:
         next_params_index = next(
             i for i, (time, _) in enumerate(param_set) if time > current_time
@@ -30,6 +43,11 @@ def find_next_params_index(
 
 
 class ConvertEndgame(Protocol, Generic[EndgameModelGeneric, CombinedParams]):
+    """
+    The structure protocol of the convert endgame function to be provided to
+    the Endgame simulation.
+    """
+
     def __call__(
         self, endgame: EndgameModelGeneric
     ) -> list[tuple[float, CombinedParams]]:
@@ -40,6 +58,11 @@ Simulation = TypeVar("Simulation", bound=GenericSimulation)
 
 
 class GenericEndgame(Generic[EndgameModelGeneric, Simulation, State, CombinedParams]):
+    """
+    The Base class for all endgame simulation classes. These represent basic simulations, that are
+    simply advanced in time.
+    """
+
     simulation_class: ClassVar[type[GenericSimulation]]
     combined_params_model: ClassVar[type[BaseInitialParams]]
     convert_endgame: ClassVar[ConvertEndgame]

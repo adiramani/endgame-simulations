@@ -9,6 +9,13 @@ from endgame_simulations.models import (
 )
 from endgame_simulations.simulations import BaseState, GenericSimulation
 
+# This example represents a test of the "endgame simulation". This is a controller over
+# simulations. It's best to review and make sure you understand the more basic "test_generic_sim"
+# example before moving on to this one.
+
+# define the parameters structures for our simulation, inheriting
+# from the correct base classes.
+
 
 class Params(BaseInitialParams):
     w_rate: float = 0.1
@@ -23,6 +30,8 @@ class FullParams(Params):
     treatment: TreatmentParams = TreatmentParams(treatment_interval=0.1)
 
 
+# The use of HDF5Dataclass implements a way to encode the state object into
+# hdf5 format, allowing the state to be easily stored and reimported.
 class State(HDF5Dataclass, BaseState[Params]):
     current_time: float
     params: Params
@@ -39,11 +48,15 @@ class State(HDF5Dataclass, BaseState[Params]):
         self.params = params
 
 
+# Here state has an integer that gets advanced by 1 every timestep. This just represents
+# a way that the state might be advanced for a disease. Typically through the advancement
+# would scale with delta time.
 def advance_state(state: State, debug: bool = False):
     print(state)
     state.state_int = state.state_int + 1
 
 
+# The simulation class
 class TestSimulation(
     GenericSimulation[Params, State], state_class=State, advance_state=advance_state
 ):
@@ -66,7 +79,12 @@ input_end = {
 
 endgame = TestEndgame.parse_obj(input_end)
 
+# for the purposes of this test, the conversion just returns the default
+# parameters at time zero.
 
+# TODO: The convert endgame function in epioncho ibm, could be potentially made
+# more generic, and this could then be moved into this repo. Then this example
+# could perhaps be made more advanced.
 def convert_endgame(endgame: EndgameModel) -> list[tuple[float, Params]]:
     return [(0.0, FullParams())]
 

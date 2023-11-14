@@ -14,6 +14,11 @@ ParamsModel = TypeVar("ParamsModel", bound=BaseInitialParams)
 
 
 class GenericSimulation(Generic[ParamsModel, State], ABC):
+    """
+    The Base class for all simulation classes. These represent basic simulations, that are
+    simply advanced in time.
+    """
+
     state_class: ClassVar[type[BaseState]]
     advance_state: ClassVar[AdvanceState]
     state: State
