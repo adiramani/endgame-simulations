@@ -77,6 +77,20 @@ class GenericEndgame(Generic[EndgameModelGeneric, Simulation, State, CombinedPar
         convert_endgame: ConvertEndgame,
         combined_params_model: type[CombinedParams],
     ) -> None:
+        """
+        Used when subclassing generic endgame. Note that three keyword arguments are required.
+
+        Args:
+            simulation_class (type[Simulation]): The simulation class itself is required to
+                instantiate the state object internally.
+            convert_endgame (ConvertEndgame): The function that converts the endgame model to a series of
+                parameters located in time.
+            combined_params_model (type[CombinedParams]): The fully fledged parameters model, used as the output
+                to convert endgame.
+        """
+        # NOTE: The below is a way the simulation class could be obtained from the type hint, to save the user
+        # adding the simulation class twice.
+        # cls.simulation_class = cls.__orig_bases__[0].__args__[1] #type:ignore
         cls.simulation_class = simulation_class
         cls.convert_endgame = convert_endgame
         cls.combined_params_model = combined_params_model

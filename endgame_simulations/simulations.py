@@ -28,6 +28,17 @@ class GenericSimulation(Generic[ParamsModel, State], ABC):
     def __init_subclass__(
         cls, *, state_class: type[State], advance_state: AdvanceState
     ) -> None:
+        """
+        Used when subclassing generic simulation. Note that two keyword arguments are required.
+
+        Args:
+            state_class (type[State]): The state class itself is required to instantiate the
+                state object on parameter reset.
+            advance_state (AdvanceState): The function used for advancing the state.
+        """
+        # NOTE: The below is a way the state class could be obtained from the type hint, to save the user
+        # adding the state class twice.
+        # cls.state_class = cls.__orig_bases__[0].__args__[1] #type:ignore
         cls.state_class = state_class
         cls.advance_state = advance_state
 
