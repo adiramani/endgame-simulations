@@ -16,6 +16,7 @@ class BaseState(Generic[StateParams], ABC):
 
     current_time: float
     _previous_delta_time: Optional[float]
+    _future_delta_time: Optional[float]
 
     @classmethod
     @abstractmethod

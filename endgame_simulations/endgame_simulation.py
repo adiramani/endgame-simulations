@@ -294,7 +294,7 @@ class GenericEndgame(Generic[EndgameModelGeneric, Simulation, State, CombinedPar
         sampling_years: list[float] | None = None,
         inclusive: bool = False,
     ) -> Iterator[State]:
-        while self.simulation.state.current_time + self.simulation._delta_time < end_time:
+        while self.simulation.state.current_time < end_time:
             # Invariant: current params are applied at this point
             inclusive_adjustment = self.simulation._delta_time if inclusive else 0.0
             if self.next_params_index < len(self._param_set):
@@ -303,6 +303,11 @@ class GenericEndgame(Generic[EndgameModelGeneric, Simulation, State, CombinedPar
             else:
                 next_stop = end_time + inclusive_adjustment
                 next_params = None
+            if (next_params is not None) and ("state" in next_params) and ("delta_time" in next_params.state):
+                if (next_params.state.delta_time != self.simulation.delta_time):
+                    self.simulation.state._future_delta_time = next_params.state.delta_time
+            else:
+                self.simulation.state._future_delta_time = None
 
             yield from self.simulation.iter_run(
                 end_time=next_stop,
@@ -320,7 +325,7 @@ class GenericEndgame(Generic[EndgameModelGeneric, Simulation, State, CombinedPar
         Args:
             end_time (float): end time of the simulation.
         """
-        while self.simulation.state.current_time + self.simulation._delta_time < end_time:
+        while self.simulation.state.current_time < end_time:
             # Invariant: current params are applied at this point
             if self.next_params_index < len(self._param_set):
                 time, next_params = self._param_set[self.next_params_index]
@@ -328,6 +333,12 @@ class GenericEndgame(Generic[EndgameModelGeneric, Simulation, State, CombinedPar
             else:
                 next_stop = end_time
                 next_params = None
+
+            if (next_params is not None) and ("state" in next_params) and ("delta_time" in next_params.state):
+                if (next_params.state.delta_time != self.simulation.delta_time):
+                    self.simulation.state._future_delta_time = next_params.state.delta_time
+            else:
+                self.simulation.state._future_delta_time = None
 
             self.simulation.run(end_time=next_stop)
 
