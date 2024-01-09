@@ -260,7 +260,7 @@ class GenericSimulation(Generic[ParamsModel, State], ABC):
                 progress_bar.update(self._delta_time)
                 type(self).advance_state(self.state, self.debug)
                 self.state._previous_delta_time = self._delta_time
-                increment_value = self._delta_time if (self.state._future_delta_time is None) or (self.state.current_time == real_end_time) else self.state._future_delta_time
+                increment_value = self.state._future_delta_time if (self.state._future_delta_time is not None) and (self.state.current_time == real_end_time) else self._delta_time
                 self.state.current_time += increment_value
 
     def run(self, *, end_time: float) -> None:
