@@ -7,7 +7,7 @@ authors = ["mark-todd <markpeter.todd@hotmail.co.uk>"]
 [tool.poetry.dependencies]
 python = ">=3.10, <4.0"
 pydantic = ">=1.10, <2.0"
-hdf5-dataclass = {git = "git@github.com:dreamingspires/hdf5-dataclass.git"}
+hdf5-dataclass = {git = "https://github.com/NTD-Modelling-Consortium/hdf5-dataclass.git"}
 tqdm = "^4.64.1"
 
 [tool.poetry.dev-dependencies]
