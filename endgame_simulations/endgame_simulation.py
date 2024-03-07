@@ -294,7 +294,7 @@ class GenericEndgame(Generic[EndgameModelGeneric, Simulation, State, CombinedPar
         sampling_years: list[float] | None = None,
         inclusive: bool = False,
     ) -> Iterator[State]:
-        while self.simulation.state.current_time + self.simulation._delta_time < end_time:
+        while self.simulation.state.current_time < end_time:
             # Invariant: current params are applied at this point
             inclusive_adjustment = self.simulation._delta_time if inclusive else 0.0
             if self.next_params_index < len(self._param_set):
@@ -304,14 +304,18 @@ class GenericEndgame(Generic[EndgameModelGeneric, Simulation, State, CombinedPar
                 next_stop = end_time + inclusive_adjustment
                 next_params = None
 
+            new_sample_years = None
+            if(sampling_years is not None):
+                new_sample_years = sampling_years[sampling_years < next_stop]
             yield from self.simulation.iter_run(
                 end_time=next_stop,
                 sampling_interval=sampling_interval,
-                sampling_years=sampling_years,
+                sampling_years=new_sample_years,
             )
 
             if next_params is not None:
                 self.simulation.reset_current_params(next_params)
+                self.simulation.state.current_time += self.simulation._delta_time
                 self.next_params_index += 1
 
     def run(self, *, end_time: float) -> None:
@@ -320,7 +324,7 @@ class GenericEndgame(Generic[EndgameModelGeneric, Simulation, State, CombinedPar
         Args:
             end_time (float): end time of the simulation.
         """
-        while self.simulation.state.current_time + self.simulation._delta_time < end_time:
+        while self.simulation.state.current_time < end_time:
             # Invariant: current params are applied at this point
             if self.next_params_index < len(self._param_set):
                 time, next_params = self._param_set[self.next_params_index]
@@ -333,4 +337,5 @@ class GenericEndgame(Generic[EndgameModelGeneric, Simulation, State, CombinedPar
 
             if next_params is not None:
                 self.simulation.reset_current_params(next_params)
+                self.simulation.state.current_time += self.simulation._delta_time
                 self.next_params_index += 1

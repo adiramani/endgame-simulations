@@ -233,8 +233,7 @@ class GenericSimulation(Generic[ParamsModel, State], ABC):
             total=real_end_time - self.state.current_time + self._delta_time,
             disable=not self.verbose,
         ) as progress_bar:
-            while self.state.current_time + self._delta_time <= real_end_time:
-                self.state.current_time += self._delta_time
+            while self.state.current_time <= real_end_time:
                 is_on_sampling_interval = (
                     sampling_interval is not None
                     and self.state.current_time % sampling_interval < self._delta_time
@@ -257,6 +256,9 @@ class GenericSimulation(Generic[ParamsModel, State], ABC):
                 type(self).advance_state(self.state, self.debug)
                 self.state._previous_delta_time = self._delta_time
 
+                if (self.state.current_time < real_end_time):
+                    self.state.current_time += self._delta_time
+
     def run(self, *, end_time: float) -> None:
         """Run simulation from current state till `end_time`
 
@@ -276,9 +278,10 @@ class GenericSimulation(Generic[ParamsModel, State], ABC):
                 disable=not self.verbose,
             ) as progress_bar:
 
-                while self.state.current_time + self._delta_time <= end_time:
-                    self.state.current_time += self._delta_time
+                while self.state.current_time <= end_time:
                     progress_bar.update(self._delta_time)
                     type(self).advance_state(self.state, self.debug)
                     self.state._previous_delta_time = self._delta_time
+                    if (self.state.current_time < end_time):
+                        self.state.current_time += self._delta_time
                     
