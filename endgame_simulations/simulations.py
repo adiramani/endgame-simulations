@@ -249,6 +249,9 @@ class GenericSimulation(Generic[ParamsModel, State], ABC):
                     sampling_years_idx += 1
 
                 self.state.current_time += self._delta_time
+                # crude self-correction at the end of each year to account for floating-point precision issues
+                if round(self.state.current_time, 9) % 1 == 0:
+                    self.state.current_time = round(self.state.current_time, 9)
 
                 progress_bar.update(self._delta_time)
                 type(self).advance_state(self.state, self.debug)
