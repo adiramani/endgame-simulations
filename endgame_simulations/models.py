@@ -129,6 +129,7 @@ class Parameters(GenericModel, Generic[InitialParams, UpdateParams]):
 
 class BaseProgramParams(BaseParams):
     treatment_interval: float
+    treatment_name: str
 
 
 ProgramParams = TypeVar("ProgramParams", bound=BaseProgramParams)
