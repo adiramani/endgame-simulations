@@ -1,5 +1,7 @@
 import json
 from typing import ClassVar, Generic, Iterator, Protocol, TypeVar, cast, overload
+from math import ceil, floor
+import warnings
 
 import h5py
 from hdf5_dataclass import FileType
@@ -295,27 +297,33 @@ class GenericEndgame(Generic[EndgameModelGeneric, Simulation, State, CombinedPar
         inclusive: bool = False,
         make_time_backwards_compatible = False,
     ) -> Iterator[State]:
-        # if using an old version of the model, we need to set `make_time_backwards_compatible` to pro-actively fix issues with the delta_time prevision
-        if make_time_backwards_compatible:
-            delta_time_to_use  = self.simulation._delta_time
-            if self.simulation.state._previous_delta_time is not None:
-                delta_time_to_use = self.simulation.state._previous_delta_time
-            if self.simulation.state.current_time - round(self.simulation.state.current_time) < delta_time_to_use:
-                self.simulation.state.current_time = round(self.simulation.state.current_time)
-        while self.simulation.state.current_time + self.simulation._delta_time < end_time:
+        # Previous simulations may use a different delta_time, and therefore a different number of timesteps/year
+        # We need to recalculate this to match what the value would be with the current timesteps/year
+        expected_current_timestep = floor(
+            self.simulation.state.current_time * self.simulation._derived_timesteps_in_year
+        )
+        if (self.simulation.state.current_timestep != expected_current_timestep):
+            warnings.warn(
+                f"Current timestep {self.simulation.state.current_timestep} " +
+                f"does not match expected current timestep {expected_current_timestep}. " +
+                "It will be changed to match the expected timestep."
+            )
+            self.simulation.state.current_timestep = expected_current_timestep
+
+        end_time_timesteps = ceil(self.simulation._derived_timesteps_in_year * end_time)
+        while self.simulation.state.current_timestep + 1 < end_time_timesteps:
+            next_stop = end_time
+            next_params = None
             # Invariant: current params are applied at this point
-            inclusive_adjustment = self.simulation._delta_time if inclusive else 0.0
             if self.next_params_index < len(self._param_set):
                 time, next_params = self._param_set[self.next_params_index]
-                next_stop = min(time, end_time + inclusive_adjustment)
-            else:
-                next_stop = end_time + inclusive_adjustment
-                next_params = None
+                next_stop = min(time, end_time)
 
             yield from self.simulation.iter_run(
                 end_time=next_stop,
                 sampling_interval=sampling_interval,
                 sampling_years=sampling_years,
+                inclusive=inclusive
             )
 
             if next_params is not None:
@@ -328,6 +336,7 @@ class GenericEndgame(Generic[EndgameModelGeneric, Simulation, State, CombinedPar
         Args:
             end_time (float): end time of the simulation.
         """
+        # TODO: change to match the timestep iteration from iter_run.
         while self.simulation.state.current_time + self.simulation._delta_time < end_time:
             # Invariant: current params are applied at this point
             if self.next_params_index < len(self._param_set):

@@ -1,5 +1,5 @@
 import warnings
-from abc import ABC, abstractproperty
+from abc import ABC, abstractmethod
 from typing import ClassVar, Generic, Iterator, TypeVar, cast, overload
 
 import h5py
@@ -102,8 +102,14 @@ class GenericSimulation(Generic[ParamsModel, State], ABC):
         self.verbose = verbose
         self.debug = debug
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def _delta_time(self) -> float:
+        ...
+
+    @property
+    @abstractmethod
+    def _derived_timesteps_in_year(self) -> float:
         ...
 
     def get_current_params(self) -> ParamsModel:
@@ -211,49 +217,61 @@ class GenericSimulation(Generic[ParamsModel, State], ABC):
         sampling_years: list[float] | None = None,
         inclusive: bool = False,
     ) -> Iterator[State]:
+        current_time_in_timesteps = np.floor(self.state.current_time * self._derived_timesteps_in_year)
+        # Note: This could be done inside the while loop in endgame_simulations.iter_run, but 
+        # this is more robust, as simulation.iter_run can be called independently outside of endgame_simulations
+        self.state.current_timestep = np.floor(
+            self.state.current_time * self._derived_timesteps_in_year
+        )
+        end_time_timesteps = np.ceil(self._derived_timesteps_in_year * end_time)
         if inclusive:
-            real_end_time = end_time + self._delta_time
-        else:
-            real_end_time = end_time
-        if real_end_time < self.state.current_time:
+            end_time_timesteps += 1
+
+        if end_time_timesteps < current_time_in_timesteps:
             raise ValueError(
-                f"End time {real_end_time} before start {self.state.current_time}"
+                f"End time {end_time} before start {self.state.current_time}"
             )
 
         if sampling_interval and sampling_years:
             raise ValueError(
                 "You must provide sampling_interval, sampling_years or neither"
             )
+        
+        self.state.current_timestep = current_time_in_timesteps
 
         if sampling_years:
-            sampling_years = sorted(sampling_years)
+            sampling_years = sorted(np.ceil(self._derived_timesteps_in_year * sampling_years))
 
         if sampling_interval is not None:
-            sampling_years = np.arange(self.state.current_time, real_end_time, sampling_interval)
+            sampling_years = np.arange(
+                self.state.current_timestep, end_time_timesteps, np.ceil(self._derived_timesteps_in_year * sampling_interval)
+            )
 
         sampling_years_idx = 0
 
         with tqdm.tqdm(
-            total=real_end_time - self.state.current_time + self._delta_time,
+            total=end_time_timesteps - self.state.current_timestep + 1,
             disable=not self.verbose,
         ) as progress_bar:
-            while self.state.current_time + self._delta_time <= real_end_time:
+            while self.state.current_timestep + 1 <= end_time_timesteps:
                 is_on_sampling_year = (
                     sampling_years is not None
                     and sampling_years_idx < len(sampling_years)
-                    and self.state.current_time - sampling_years[sampling_years_idx]
+                    and self.state.current_timestep - sampling_years[sampling_years_idx]
                     >= 0
                 )
                 if is_on_sampling_year:
                     yield self.state
                     sampling_years_idx += 1
 
-                self.state.current_time += self._delta_time
-                # crude self-correction at the end of each year to account for floating-point precision issues
-                if round(self.state.current_time, 9) % 1 == 0:
-                    self.state.current_time = round(self.state.current_time, 9)
+                self.state.current_timestep += 1
+                
+                time_in_current_year = (
+                    self.state.current_timestep - (np.floor(self.state.current_time) * self._derived_timesteps_in_year)
+                    ) * self._delta_time
+                self.state.current_time = np.floor(self.state.current_time) + time_in_current_year
 
-                progress_bar.update(self._delta_time)
+                progress_bar.update(1)
                 type(self).advance_state(self.state, self.debug)
                 self.state._previous_delta_time = self._delta_time
 
@@ -263,6 +281,7 @@ class GenericSimulation(Generic[ParamsModel, State], ABC):
         Args:
             end_time (float): end time of the simulation.
         """
+        # TODO: change to match the timestep iteration from iter_run.
         if end_time < self.state.current_time:
             raise ValueError(
                 f"End time {end_time} before start {self.state.current_time}"

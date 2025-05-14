@@ -14,6 +14,7 @@ class BaseState(Generic[StateParams], ABC):
     The abstract base class for all state classes.
     """
 
+    current_timestep: int
     current_time: float
     _previous_delta_time: Optional[float]
 
